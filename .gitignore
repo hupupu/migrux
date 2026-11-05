@@ -1,5 +1,5 @@
 # Ignore local secrets or backups
-/backup/
+/backups/
 *.local
 *.tmp
 .DS_Store
