@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/utils"
+
+restore_secure_directory "${1:-}" "ssh/.ssh" "$HOME/.ssh" 700 600 \
+    -name 'id_*' -o -name '*.pem' -o -name 'config'
