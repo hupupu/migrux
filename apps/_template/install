@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Template install script
+
+set -euo pipefail
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/utils"
 
 APP_NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 
-echo "Installing $APP_NAME..."
-# sudo apt update && sudo apt install -y app
+log_info "Installing $APP_NAME..."
+# Add the application-specific installation command here.
+# sudo apt-get update && sudo apt-get install -y package-name

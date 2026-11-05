@@ -24,6 +24,106 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Validate a required function argument.
+require_argument() {
+    local value="${1:-}"
+    local description="${2:-argument}"
+
+    if [ -z "$value" ]; then
+        log_error "Missing required $description."
+        return 1
+    fi
+}
+
+# Back up a directory into BACKUP_DEST/TARGET_NAME.
+# Missing source directories are skipped with a warning.
+backup_directory() {
+    local backup_dest="${1:-}"
+    local source_dir="${2:-}"
+    local target_name="${3:-}"
+
+    require_argument "$backup_dest" "backup destination" || return 1
+    require_argument "$source_dir" "source directory" || return 1
+    target_name="${target_name:-$(basename "$source_dir")}"
+
+    if [ ! -d "$source_dir" ]; then
+        log_warn "Directory not found; skipping backup: $source_dir"
+        return 0
+    fi
+
+    mkdir -p "$backup_dest/$target_name"
+    cp -a "$source_dir" "$backup_dest/$target_name/"
+    log_success "Backed up $source_dir."
+}
+
+# Restore a directory from BACKUP_DEST/RELATIVE_SOURCE into DESTINATION.
+# Missing backup directories are skipped with a warning.
+restore_directory() {
+    local backup_dest="${1:-}"
+    local relative_source="${2:-}"
+    local destination_dir="${3:-}"
+    local source_dir
+
+    require_argument "$backup_dest" "backup source" || return 1
+    require_argument "$relative_source" "relative backup directory" || return 1
+    require_argument "$destination_dir" "restore destination" || return 1
+    source_dir="$backup_dest/$relative_source"
+
+    if [ ! -d "$source_dir" ]; then
+        log_warn "Backup directory not found; skipping restore: $source_dir"
+        return 0
+    fi
+
+    mkdir -p "$destination_dir"
+    cp -a "$source_dir/." "$destination_dir/"
+    log_success "Restored $source_dir to $destination_dir."
+}
+
+# Restore a directory and apply restrictive permissions after a successful restore.
+restore_secure_directory() {
+    local backup_dest="${1:-}"
+    local relative_source="${2:-}"
+    local destination_dir="${3:-}"
+    local directory_mode="${4:-700}"
+    local file_mode="${5:-600}"
+    shift 5 || true
+
+    require_argument "$backup_dest" "backup source" || return 1
+    require_argument "$relative_source" "relative backup directory" || return 1
+    require_argument "$destination_dir" "restore destination" || return 1
+
+    if [ ! -d "$backup_dest/$relative_source" ]; then
+        log_warn "Backup directory not found; skipping restore: $backup_dest/$relative_source"
+        return 0
+    fi
+
+    restore_directory "$backup_dest" "$relative_source" "$destination_dir"
+    secure_directory "$destination_dir" "$directory_mode" "$file_mode" "$@"
+}
+
+# Set permissions on a directory and matching files below it.
+secure_directory() {
+    local directory="${1:-}"
+    local directory_mode="${2:-700}"
+    local file_mode="${3:-600}"
+    shift 3 || true
+
+    require_argument "$directory" "directory" || return 1
+
+    if [ ! -d "$directory" ]; then
+        log_warn "Directory not found; skipping permission update: $directory"
+        return 0
+    fi
+
+    chmod "$directory_mode" "$directory"
+
+    if [ "$#" -eq 0 ]; then
+        find "$directory" -type f -exec chmod "$file_mode" {} +
+    else
+        find "$directory" -type f \( "$@" \) -exec chmod "$file_mode" {} +
+    fi
+}
+
 # Helper to execute app scripts safely
 run_app_script() {
     local app_dir="$1"

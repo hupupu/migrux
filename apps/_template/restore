@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Template restore script
-# $1 = Source backup directory path
 
-BACKUP_SRC="$1"
+set -euo pipefail
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/utils"
+
 APP_NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
-APP_BACKUP_DIR="$BACKUP_SRC/$APP_NAME"
 
-echo "Restoring $APP_NAME from $APP_BACKUP_DIR..."
-# cp -r "$APP_BACKUP_DIR/"* ~/.config/app/
+# Keep the relative backup path and destination aligned with backup.
+restore_directory "${1:-}" "$APP_NAME/app" "$HOME/.config/app"
