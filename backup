@@ -4,7 +4,7 @@ set -e
 
 # Source utility functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/scripts/utils.sh"
+source "$SCRIPT_DIR/scripts/utils"
 
 BACKUP_DEST="$1"
 
@@ -34,7 +34,7 @@ for app_path in "$APPS_DIR"/*; do
         if [[ "$app_name" =~ ^[_.] ]]; then
             continue
         fi
-        run_app_script "$app_path" "backup.sh" "$BACKUP_DEST"
+        run_app_script "$app_path" "backup" "$BACKUP_DEST"
     fi
 done
 

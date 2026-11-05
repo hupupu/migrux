@@ -4,20 +4,9 @@ set -e
 
 # Source utility functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/scripts/utils.sh"
+source "$SCRIPT_DIR/scripts/utils"
 
-BACKUP_SRC="$1"
-
-if [ -z "$BACKUP_SRC" ]; then
-    read -rp "Enter source backup directory path (e.g., /media/user/external_drive/migrux_backup): " BACKUP_SRC
-fi
-
-if [ -z "$BACKUP_SRC" ] || [ ! -d "$BACKUP_SRC" ]; then
-    log_error "Valid backup source directory not provided or does not exist. Exiting."
-    exit 1
-fi
-
-log_info "Starting migration restore process from: $BACKUP_SRC"
+log_info "Starting application installation process..."
 
 APPS_DIR="$SCRIPT_DIR/apps"
 
@@ -33,8 +22,8 @@ for app_path in "$APPS_DIR"/*; do
         if [[ "$app_name" =~ ^[_.] ]]; then
             continue
         fi
-        run_app_script "$app_path" "restore.sh" "$BACKUP_SRC"
+        run_app_script "$app_path" "install"
     fi
 done
 
-log_success "Restore process finished successfully!"
+log_success "Application installation process finished successfully!"
