@@ -17,12 +17,25 @@ if [ -z "$BACKUP_DEST" ]; then
     exit 1
 fi
 
+if [ -e "$BACKUP_DEST" ]; then
+    if [ ! -d "$BACKUP_DEST" ]; then
+        log_error "Backup destination exists but is not a directory: $BACKUP_DEST"
+        exit 1
+    fi
+
+    if find "$BACKUP_DEST" -mindepth 1 -print -quit | grep -q .; then
+        log_error "Backup destination must be empty: $BACKUP_DEST"
+        exit 1
+    fi
+else
+    mkdir -p "$BACKUP_DEST"
+fi
+
 log_info "Starting migration backup process to: $BACKUP_DEST"
-mkdir -p "$BACKUP_DEST"
 
 APPS_DIR="$SCRIPT_DIR/apps"
 
-if [ ! -d "$APPS_DIR" ] || [ -z "$(ls -A "$APPS_DIR" 2>/dev/null)" ]; then
+if [ ! -d "$APPS_DIR" ] || [ -z "$(find "$APPS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '_*' -print -quit 2>/dev/null)" ]; then
     log_warn "No application directories found in $APPS_DIR."
     exit 0
 fi
