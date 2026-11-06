@@ -1,11 +1,24 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/utils"
 
+# used for logging only
 APP_NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+# used for detecting if the application is already installed
+COMMAND_NAME="[command-name]"
+# used to install the application with apt-get
+PACKAGE_NAME="[package-name]"
 
+# Detect if the application is already installed.
+if is_app_installed "$APP_NAME" "$COMMAND_NAME"; then
+    log_info "$APP_NAME is already installed."
+    exit 0
+fi
+
+# Check the installation prerequisite before starting the installation.
+require_apt_get "$APP_NAME"
+
+# Installation steps.
 log_info "Installing $APP_NAME..."
-# Add the application-specific installation command here.
-# sudo apt-get update && sudo apt-get install -y package-name
+sudo apt-get update && sudo apt-get install -y "$PACKAGE_NAME"

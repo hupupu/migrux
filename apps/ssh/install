@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-if command -v ssh >/dev/null 2>&1; then
-    echo "OpenSSH client is already installed."
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/utils"
+
+# used for logging only
+APP_NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+# used for detecting if the application is already installed
+COMMAND_NAME="ssh"
+# used to install the application with apt-get
+PACKAGE_NAME="openssh-client"
+
+# Detect if the application is already installed.
+if is_app_installed "$APP_NAME" "$COMMAND_NAME"; then
+    log_info "$APP_NAME is already installed."
     exit 0
 fi
 
-if ! command -v apt-get >/dev/null 2>&1; then
-    echo "apt-get is required to install the OpenSSH client on Ubuntu." >&2
-    exit 1
-fi
+# Check the installation prerequisite before starting the installation.
+require_apt_get "$APP_NAME"
 
-sudo apt-get update
-sudo apt-get install -y openssh-client
+# Installation steps.
+log_info "Installing $APP_NAME..."
+sudo apt-get update && sudo apt-get install -y "$PACKAGE_NAME"

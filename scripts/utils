@@ -35,6 +35,28 @@ require_argument() {
     fi
 }
 
+# Check whether an application's executable is available on PATH.
+is_app_installed() {
+    local app_name="${1:-}"
+    local executable="${2:-}"
+
+    require_argument "$app_name" "application name" || return 1
+    require_argument "$executable" "application executable" || return 1
+
+    log_info "Checking if $app_name is installed..."
+    command -v "$executable" >/dev/null 2>&1
+}
+
+# Ensure apt-get is available before attempting an application installation.
+require_apt_get() {
+    local app_name="${1:-application}"
+
+    if ! command -v apt-get >/dev/null 2>&1; then
+        log_error "apt-get is required to install $app_name on Ubuntu."
+        return 1
+    fi
+}
+
 # Back up a directory into BACKUP_DEST/TARGET_NAME.
 # Missing source directories are skipped with a warning.
 backup_directory() {
